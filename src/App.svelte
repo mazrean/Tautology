@@ -1,6 +1,11 @@
 <script>
 	let shiki1="please input";
 	let answer= null
+	function makeStr(str,i){
+		let str1 = str.substring(0,i).replace("(","").replace(/(.*)\)/,'$1')
+		let str2 = str.substring(i+1,str.length).replace("(","").replace(/(.*)\)/,'$1')
+		return {str1,str2}
+	}
 	function calcConjunction(b1,b2){
 		return b1 && b2
 	}
@@ -16,7 +21,7 @@
 	function calcEquivalence(b1,b2){
 		return (!b1 || b2) && (b1 || !b2);
 	}
-	function calcMain(str,p,q,r){
+	function calcMain(str,p,q,r,j){
 		let state = 0
 		let i=0
 		let end=false
@@ -50,54 +55,51 @@
 					break;
 				case "∧":
 					if(state===0){
-						let str1 = str.substring(0,i).replace("(","").replace(")","")
-						let str2 = str.substring(i+1,str.length).replace("(","").replace(")","")
+						let {str1,str2}=makeStr(str,i)
 						end=true
-						return calcConjunction(calcMain(str1,p,q,r),calcMain(str2,p,q,r))
+						return calcConjunction(calcMain(str1,p,q,r,1),calcMain(str2,p,q,r,1))
 						break;
 					}
 				case "∨":
 					if(state===0){
-						let str1 = str.substring(0,i).replace("(","").replace(")","")
-						let str2 = str.substring(i+1,str.length).replace("(","").replace(")","")
+						let {str1,str2}=makeStr(str,i)
 						end=true
-						return calcDisjunction(calcMain(str1,p,q,r),calcMain(str2,p,q,r))
+						return calcDisjunction(calcMain(str1,p,q,r,1),calcMain(str2,p,q,r,1))
 						break;
 					}
 				case "¬":
 					if(state===0){
-						let str1 = str.substring(0,i).replace("(","").replace(")","")
-						let str2 = str.substring(i+1,str.length).replace("(","").replace(")","")
-						console.log(str1)
-						console.log(str2)
+						let str2 = str.substring(i+1,str.length).replace("(","").replace(/(.*)\)/,'$1')
 						end=true
-						return calcNot(calcMain(str2,p,q,r))
+						return calcNot(calcMain(str2,p,q,r,1))
 						break;
 					}
 				case "⇒":
 					if(state===0){
-						let str1 = str.substring(0,i).replace("(","").replace(")","")
-						let str2 = str.substring(i+1,str.length).replace("(","").replace(")","")
+						let {str1,str2}=makeStr(str,i)
 						console.log(str1)
 						console.log(str2)
 						end=true
-						return calcImplication(calcMain(str1,p,q,r),calcMain(str2,p,q,r))
+						return calcImplication(calcMain(str1,p,q,r,1),calcMain(str2,p,q,r,1))
 						break;
 					}
 				case "⇔":
 					if(state===0){
-						let str1 = str.substring(0,i).replace("(","").replace(")","")
-						let str2 = str.substring(i+1,str.length).replace("(","").replace(")","")
+						let {str1,str2}=makeStr(str,i)
 						end=true
-						return calcEquivalence(calcMain(str1,p,q,r),calcMain(str2,p,q,r))
+						return calcEquivalence(calcMain(str1,p,q,r,1),calcMain(str2,p,q,r,1))
 						break;
 					}
 			}
 		}
-		console.log("error")
+		if(j==0){
+			str = str.replace('(','').replace(/(.*)\)/,'$1')
+			return calcMain(str,p,q,r,1)
+		}
+		return "error"
 	}
 	function calc(){
-		let str=shiki1
+		let str=shiki1.replace(/\s+/g, '')
 		let ans=true
 		let list=[true,false]
 		list.forEach((x)=>{
@@ -106,7 +108,7 @@
 				console.log(2)
 				list.forEach((z)=>{
 					console.log(3)
-					let b=calcMain(str,x,y,z)
+					let b=calcMain(str,x,y,z,0)
 					console.log(b)
 					if(!b){
 						ans=false
